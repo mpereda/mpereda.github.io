@@ -230,7 +230,7 @@
 	}
 		#nav ul
 		{
-			display: inline;
+			display: inline-block;
 			padding: 0em 3em;
 			border-radius: 40px;
 			background: #131313;
@@ -238,7 +238,7 @@
 
 		#nav > ul > li
 		{
-			display: inline;
+			display: inline-block;
 		}
 		
 			#nav > ul > li:last-child
@@ -249,7 +249,7 @@
 			#nav > ul > li > a,
 			#nav > ul > li > span
 			{
-				display: inline;
+				display: block;
 				padding: 1.3em 1.5em;
 				letter-spacing: 1px;
 				text-decoration: none;
@@ -273,7 +273,7 @@
 
 			#nav > ul > li > ul
 			{
-				display: inline;
+				display: none;
 			}
 
 
