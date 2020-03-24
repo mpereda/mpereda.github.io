@@ -220,7 +220,64 @@
 	{
 		display: none;
 	}
+
+/*********************************************************************************/
+/* Nav                                                                           */
+/*********************************************************************************/
+
+	#nav
+	{
+	}
 	
+		#nav ul
+		{
+			display: inline-block;
+			padding: 0em 3em;
+			border-radius: 40px;
+			background: #131313;
+		}
+
+		#nav > ul > li
+		{
+			display: inline-block;
+		}
+		
+			#nav > ul > li:last-child
+			{
+				padding-right: 0;
+			}
+
+			#nav > ul > li > a,
+			#nav > ul > li > span
+			{
+				display: block;
+				padding: 1.3em 1.5em;
+				letter-spacing: 1px;
+				text-decoration: none;
+				text-transform: uppercase;
+				font-weight: 200;
+				font-size: 1em;
+				outline: 0;
+				color: #7b7b7b;
+			}
+
+
+			#nav > ul > li > a:hover
+			{
+				color: #FFF;
+			}
+
+			#nav li.active a
+			{
+				color: #FFF;
+			}
+
+			#nav > ul > li > ul
+			{
+				display: none;
+			}
+
+
 /*********************************************************************************/
 /* Main                                                                          */
 /*********************************************************************************/
