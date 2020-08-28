@@ -12,7 +12,7 @@
 
 	body
 	{
-		background: #333536/* Black to grey #090909;
+		background: #333536; /* Black to grey #090909;
 	}
 
 	body,input,textarea,select
@@ -37,7 +37,7 @@
 	strong, b
 	{
 		font-weight: bold;
-		color: #333536/* Black to grey #090909;
+		color: #333536; /* Black to grey #090909;
 	}
 	
 	em, i
@@ -48,7 +48,7 @@
 	/* Don't forget to set this to something that matches the design */
 	a
 	{
-		color: #A280A3;
+		color: #93e1d8; /* Antes rosa palo #A280A3;
 	}
 	
 	a:hover
