@@ -37,9 +37,9 @@
 	strong, b
 	{
 		font-weight: bold;
-		color: #333536; 
+		color: #000000;
 	}
-	/* Black to grey #090909;
+	
 	em, i
 	{
 		font-style: italic;
@@ -50,7 +50,7 @@
 	{
 		color: #A280A3;
 	}
-	/* Antes rosa palo #A280A3;
+	
 	a:hover
 	{
 		text-decoration: none;
