@@ -48,7 +48,7 @@
 	/* Don't forget to set this to something that matches the design */
 	a
 	{
-		color: #A280A3;
+		color: #218380; /* Antes rosa #A280A3;*/
 	}
 	
 	a:hover
