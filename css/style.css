@@ -12,7 +12,7 @@
 
 	body
 	{
-		background: #090909;
+		background: #333536/* Black to grey #090909;
 	}
 
 	body,input,textarea,select
@@ -37,7 +37,7 @@
 	strong, b
 	{
 		font-weight: bold;
-		color: #000000;
+		color: #333536/* Black to grey #090909;
 	}
 	
 	em, i
