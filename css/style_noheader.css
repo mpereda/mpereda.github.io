@@ -199,11 +199,11 @@ a:focus, .btn:focus, .btn:active:focus, .btn.active:focus, .btn.focus, .btn:acti
 .intro h1 {
 	font-family: 'Raleway', sans-serif;
 	color: #fff;
-	font-size: 82px;
+	font-size: 32px;
 	font-weight: 700;
 	text-transform: uppercase;
 	margin-top: 0;
-	margin-bottom: 10px;
+	margin-bottom: 0px;
 }
 .intro h1 span {
 	font-weight: 800;
@@ -218,16 +218,16 @@ a:focus, .btn:focus, .btn:active:focus, .btn.active:focus, .btn.focus, .btn:acti
 	margin-bottom: 60px;
 }
 header .intro-text {
-	padding-top: 350px;
-	padding-bottom: 200px;
+	padding-top: 95px;
+	padding-bottom: 10px;
 	text-align: center;
 }
-/* Resources Section */
-#Resources {
+/* Features Section */
+#features {
 	padding: 100px 0;
 	background: #f6f6f6;
 }
-#Resources i.fa {
+#features i.fa {
 	font-size: 38px;
 	margin-bottom: 20px;
 	transition: all 0.5s;
@@ -276,59 +276,57 @@ header .intro-text {
 	padding-right: 8px;
 }
 #about img {
-	width: 320px;
-	margin-top: 30px;
+	width: 520px;
+	margin-top: 10px;
 	background: #fff;
 	border-right: 0;
 	box-shadow: 0 0 50px rgba(0,0,0,0.06);
-	margin-left: 100px;
 }
 #about p {
 	line-height: 24px;
 	margin: 30px 0;
 }
-/* Bio Section */
-#Bio {
-	padding: 0px 0 100px 0;
-	background:none; /*linear-gradient(to right, #6372ff 0%, #5ca9fb 100%);*/
-	color: #000;
+/* Services Section */
+#services {
+	padding: 100px 0;
+	background: linear-gradient(to right, #6372ff 0%, #5ca9fb 100%);
+	color: #fff;
 }
-#Bio .service-desc {
+#services .service-desc {
 	margin: 10px 10px 20px;
 }
-#Bio h2 {
-	color: #333; /* color titulo seccion */
+#services h2 {
+	color: #fff;
 }
-#Bio .section-title h2::after {
+#services .section-title h2::after {
 	position: absolute;
 	content: "";
-	background: rgba(0,0,0,.3);
+	background: rgba(255,255,255,.3);
 	height: 4px;
 	width: 60px;
 	bottom: 0;
 	margin-left: -30px;
 	left: 50%;
 }
-#Bio i.fa {
+#services i.fa {
 	font-size: 42px;
 	width: 120px;
 	height: 120px;
 	padding: 40px 0;
 	background: linear-gradient(to right, #6372ff 0%, #5ca9fb 100%);
 	border-radius: 50%;
-	color: #fff; /* color iconos */
+	color: #fff;
 	box-shadow: 10px 10px 10px rgba(0,0,0,.05);
 }
-#Bio h3 {
+#services h3 {
 	font-weight: 500;
 	padding: 5px 0;
-	color: #000;
+	color: #fff;
 }
-#Bio p {
-	color: rgba(0,0,0,.75);
-	text-align: justify;
+#services p {
+	color: rgba(255,255,255,.75);
 }
-#Bio .service-desc {
+#services .service-desc {
 	margin-bottom: 40px;
 }
 /* Portfolio Section */
@@ -376,12 +374,12 @@ header .intro-text {
 .hover-bg:hover .hover-text {
 	opacity: 1;
 }
-/* Teaching Section */
-#Teaching {
+/* Testimonials Section */
+#testimonials {
 	padding: 100px 0;
 	background: #f6f6f6;
 }
-#Teaching i {
+#testimonials i {
 	color: #e6e6e6;
 	font-size: 32px;
 	margin-bottom: 20px;
@@ -406,16 +404,14 @@ header .intro-text {
 }
 .testimonial-content p {
 	margin-bottom: 0;
-	font-size: 18px;
-	/*font-style: italic;*/
-	font-weight: 600;
-	color: #666;
+	font-size: 14px;
+	font-style: italic;
 }
 .testimonial-meta {
 	margin-top: 10px;
-	font-size: 16px;
-	/*font-weight: 600;
-	color: #666;*/
+	font-size: 15px;
+	font-weight: 600;
+	color: #666;
 }
 /* Team Section */
 #team {
@@ -438,7 +434,7 @@ header .intro-text {
 /* Contact Section */
 #contact {
 	padding: 100px 0 60px 0;
-	background: linear-gradient(to right, #2a2a2e 0%, #35353b 100%);
+	background: linear-gradient(to right, #6372ff 0%, #5ca9fb 100%);
 	color: rgba(255,255,255,.75);
 }
 #contact .section-title {
