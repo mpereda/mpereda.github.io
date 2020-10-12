@@ -278,7 +278,7 @@ header .intro-text {
 #about img {
 	width: 320px;
 	margin-top: 30px;
-	background: #fff;
+	background: #f9f9f9; /*color fondo en transparencias*/
 	border-right: 0;
 	box-shadow: 0 0 50px rgba(0,0,0,0.06);
 	margin-left: 100px;
