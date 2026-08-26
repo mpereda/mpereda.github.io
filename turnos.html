@@ -3,150 +3,138 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Turnos de tutoría</title>
+<title>Prácticas MAD2. Tutorías de proyecto de SIMIO</title>
 <style>
   body{margin:0;background:#f5f4f2;color:#2a2a28;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   .wrap{max-width:640px;margin:0 auto;padding:32px 20px 64px;}
-  h1{font-size:1.6rem;margin:0 0 4px;}
-  .sub{color:#6b6a67;margin:0 0 24px;font-size:0.95rem;}
+  h1{font-size:1.5rem;margin:0 0 4px;}
+  .sub{color:#6b6a67;margin:0 0 16px;font-size:0.95rem;}
+  .notice{background:#f1e6d8;color:#7a5a2e;border-radius:8px;padding:10px 14px;font-size:0.88rem;margin-bottom:24px;line-height:1.4;}
   h2{font-size:1.05rem;margin:28px 0 8px;color:#3d3d3a;}
-  .request-form{display:flex;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid #e3e1dc;border-radius:10px;padding:16px;margin-bottom:8px;align-items:end;}
+  .card{background:#fff;border:1px solid #e3e1dc;border-radius:10px;padding:16px;margin-bottom:8px;}
+  .request-form{display:flex;gap:8px;flex-wrap:wrap;align-items:end;}
   .field{flex:1;min-width:160px;}
   .request-form label{display:block;font-size:0.85rem;color:#57564f;margin-bottom:4px;}
   .request-form input{width:100%;padding:9px 10px;border:1px solid #ccc9c2;border-radius:6px;font-size:1rem;box-sizing:border-box;}
   .request-form button{padding:9px 16px;border:none;border-radius:6px;background:#b5533c;color:#fff;font-size:0.95rem;cursor:pointer;height:38px;}
+  .request-form button.secondary{background:#8a8880;}
   .request-form button:disabled{opacity:0.6;cursor:default;}
+  details{margin-bottom:24px;}
+  summary{cursor:pointer;font-size:0.88rem;color:#6b6a67;padding:4px 0;}
   .status{min-height:20px;font-size:0.9rem;margin:6px 2px 18px;color:#3d7a4f;}
   .status.error{color:#b5453c;}
-  .msg{padding:10px 14px;border-radius:8px;font-size:0.9rem;margin-bottom:16px;}
-  .msg.ok{background:#e3f0e6;color:#2e6b40;}
-  .msg.error{background:#f5e1de;color:#a13f30;}
   table.slots{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e1dc;border-radius:10px;overflow:hidden;}
   table.slots td{padding:8px 12px;border-bottom:1px solid #efeee9;font-size:0.92rem;}
   table.slots tr:last-child td{border-bottom:none;}
-  td.time{width:110px;color:#57564f;font-variant-numeric:tabular-nums;}
-  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:0.8rem;}
-  .badge.reservado{background:#e7ecfa;color:#33448a;font-weight:600;}
-  .badge.libre{background:#e3f0e6;color:#2e6b40;}
-  .badge.proximamente{background:#f1e6d8;color:#7a5a2e;}
-  .badge.cerrado{background:#efeee9;color:#8a8880;}
+  td.time{width:150px;color:#57564f;font-variant-numeric:tabular-nums;}
+  td.who{font-weight:600;}
+  .empty-day{color:#9b998f;font-size:0.9rem;padding:10px 2px;}
   .foot{color:#8a8880;font-size:0.85rem;margin-top:18px;}
-  .legend{font-size:0.82rem;color:#8a8880;margin:4px 0 20px;}
   @media (prefers-color-scheme: dark){
     body{background:#1c1b19;color:#eae8e3;}
-    .request-form,table.slots{background:#26241f;border-color:#3a3833;}
+    .card,table.slots{background:#26241f;border-color:#3a3833;}
     .request-form input{background:#1c1b19;border-color:#48453e;color:#eae8e3;}
-    .sub,h2,.legend{color:#b8b6ad;}
+    .sub,h2,summary,.empty-day{color:#b8b6ad;}
     td.time{color:#b8b6ad;}
     .foot{color:#8a8880;}
-    .msg.ok{background:#20321f;color:#8fd39f;}
-    .msg.error{background:#3a201d;color:#e0958c;}
-    .badge.reservado{background:#242c47;color:#a9b7ec;}
-    .badge.libre{background:#20321f;color:#8fd39f;}
-    .badge.proximamente{background:#3a3020;color:#e0be8c;}
-    .badge.cerrado{background:#302f2b;color:#8a8880;}
+    .request-form button.secondary{background:#4a4841;}
+    .notice{background:#3a3020;color:#e0be8c;}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Turnos de tutoría</h1>
-  <p class="sub">Turnos de 15 minutos. Un turno por grupo. Solo se puede reservar entre 3 días antes y 3 horas antes de cada turno.</p>
+  <h1>Prácticas MAD2. Tutorías de proyecto de SIMIO</h1>
+  <p class="sub">Turnos de 15 minutos, un turno por grupo. Solo se puede reservar entre 3 días antes y 3 horas antes de cada sesión.</p>
+  <p class="notice">El horario de cada turno es orientativo hasta 3 horas antes de la sesión: si hay cancelaciones, los turnos se adelantan automáticamente para no dejar huecos. La hora definitiva queda fijada a partir de esas 3 horas previas.</p>
 
-  <div id="formArea"></div>
+  <div class="card">
+    <form id="request-form" class="request-form">
+      <div class="field">
+        <label for="group-input">Nombre del grupo</label>
+        <input id="group-input" type="text" placeholder="Grupo A" required maxlength="60" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="email-input">Email (@alumnos.upm.es)</label>
+        <input id="email-input" type="email" placeholder="nombre@alumnos.upm.es" required autocomplete="off">
+      </div>
+      <button type="submit">Pedir turno</button>
+    </form>
+  </div>
   <div id="status" class="status" aria-live="polite"></div>
-  <p class="legend">Reservado · Libre (puedes pedirlo) · Próximamente (aún no se puede reservar) · Cerrado (plazo pasado, sin reservar)</p>
+
+  <details>
+    <summary>¿Necesitas cancelar un turno?</summary>
+    <div class="card" style="margin-top:8px;">
+      <form id="cancel-form" class="request-form">
+        <div class="field">
+          <label for="cancel-group-input">Nombre del grupo</label>
+          <input id="cancel-group-input" type="text" placeholder="Grupo A" required maxlength="60" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="cancel-email-input">Email usado al reservar</label>
+          <input id="cancel-email-input" type="email" placeholder="nombre@alumnos.upm.es" required autocomplete="off">
+        </div>
+        <button type="submit" class="secondary">Cancelar turno</button>
+      </form>
+    </div>
+  </details>
+  <div id="cancel-status" class="status" aria-live="polite"></div>
+
   <div id="slotsArea">Cargando turnos…</div>
 </div>
 
 <script>
-  // Pega aquí la URL de tu Apps Script (Implementar > Nueva implementación > Aplicación web)
-  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywS40x0i6prG_kXHiDtZ7ncZt-5iY09_J-YJWcZkKO_-pLs7sWIR4dc9rJenpsdvKzww/exec';
-
-  var STATUS_LABELS = {
-    reservado: 'Reservado',
-    libre: 'Libre',
-    proximamente: 'Próximamente',
-    cerrado: 'Cerrado'
-  };
+  // URL de tu Apps Script (Implementar > Nueva implementación > Aplicación web)
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqW5s-SOnZkDcD_QicLDB1pw6J_d5Mtl6VVkIBHelQXVIT4WcumGPKWxNJTO7egGU1Xw/exec';
 
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function setStatus(text, isError) {
-    var el = document.getElementById('status');
+  function setStatus(elId, text, isError) {
+    var el = document.getElementById(elId);
     el.textContent = text || '';
     el.className = 'status' + (isError ? ' error' : '');
   }
 
-  function renderForm() {
-    var el = document.getElementById('formArea');
-    el.innerHTML =
-      '<form id="request-form" class="request-form">' +
-      '  <div class="field">' +
-      '    <label for="group-input">Nombre del grupo</label>' +
-      '    <input id="group-input" type="text" placeholder="Grupo A" required maxlength="60" autocomplete="off">' +
-      '  </div>' +
-      '  <div class="field">' +
-      '    <label for="email-input">Email (@alumnos.upm.es)</label>' +
-      '    <input id="email-input" type="email" placeholder="nombre@alumnos.upm.es" required autocomplete="off">' +
-      '  </div>' +
-      '  <button type="submit">Pedir turno</button>' +
-      '</form>';
-    document.getElementById('request-form').addEventListener('submit', onSubmit);
-  }
-
-  function renderSlots(slots) {
-    var days = [];
-    var map = {};
-    slots.forEach(function (s) {
-      if (!map[s.date]) {
-        map[s.date] = { date: s.date, label: s.dayLabel, slots: [] };
-        days.push(map[s.date]);
-      }
-      map[s.date].slots.push(s);
-    });
-
+  function renderDays(data) {
     var html = '';
-    days.forEach(function (day) {
-      html += '<h2>' + esc(day.label) + '</h2>';
-      html += '<table class="slots"><tbody>';
-      day.slots.forEach(function (s) {
-        html += '<tr>';
-        html += '<td class="time">' + esc(s.start) + '–' + esc(s.end) + '</td>';
-        html += '<td>';
-        if (s.status === 'reservado') {
-          html += '<span class="badge reservado">' + esc(s.group) + '</span>';
-        } else {
-          html += '<span class="badge ' + s.status + '">' + STATUS_LABELS[s.status] + '</span>';
-        }
-        html += '</td>';
-        html += '</tr>';
-      });
-      html += '</tbody></table>';
+    data.days.forEach(function (day) {
+      html += '<h2>' + esc(day.dayLabel) + '</h2>';
+      if (day.reservations.length === 0) {
+        html += '<p class="empty-day">Sin reservas todavía.</p>';
+      } else {
+        html += '<table class="slots"><tbody>';
+        day.reservations.forEach(function (s) {
+          html += '<tr>';
+          html += '<td class="time">' + esc(s.start) + '-' + esc(s.end) + 'h</td>';
+          html += '<td class="who">' + esc(s.group) + '</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+      }
     });
-
-    var total = slots.length;
-    var libres = slots.filter(function (s) { return s.status === 'libre' || s.status === 'proximamente'; }).length;
-    html += '<p class="foot">' + libres + ' de ' + total + ' turnos sin reservar.</p>';
-
+    html += '<p class="foot">' + data.total + ' de ' + data.capacity + ' turnos reservados.</p>';
     document.getElementById('slotsArea').innerHTML = html;
   }
 
   function loadState() {
-    fetch(SCRIPT_URL)
+    // cache: 'no-store' + un parámetro único evita que el navegador (o
+    // algún proxy) devuelva una respuesta antigua justo después de
+    // reservar o cancelar.
+    fetch(SCRIPT_URL + '?t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data.ok) { setStatus('No se ha podido cargar la lista de turnos.', true); return; }
-        renderSlots(data.slots);
+        if (!data.ok) { setStatus('status', 'No se ha podido cargar la lista de turnos.', true); return; }
+        renderDays(data);
       })
       .catch(function () {
-        setStatus('No se ha podido cargar la lista de turnos.', true);
+        setStatus('status', 'No se ha podido cargar la lista de turnos.', true);
       });
   }
 
-  function onSubmit(e) {
+  function onSubmitBook(e) {
     e.preventDefault();
     var group = document.getElementById('group-input').value.trim();
     var email = document.getElementById('email-input').value.trim();
@@ -154,38 +142,73 @@
 
     if (!group || !email) return;
     if (!/@alumnos\.upm\.es$/i.test(email)) {
-      setStatus('El email debe terminar en @alumnos.upm.es', true);
+      setStatus('status', 'El email debe terminar en @alumnos.upm.es', true);
       return;
     }
 
     btn.disabled = true;
-    setStatus('Guardando…', false);
+    setStatus('status', 'Guardando…', false);
 
     fetch(SCRIPT_URL, {
       method: 'POST',
-      // text/plain evita el preflight CORS; Apps Script igualmente lo lee como JSON.
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ group: group, email: email })
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita el preflight CORS
+      body: JSON.stringify({ action: 'book', group: group, email: email })
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         btn.disabled = false;
         if (data.ok) {
-          setStatus('¡Turno confirmado! ' + data.slot.dayLabel + ', ' + data.slot.start + '–' + data.slot.end + '.', false);
+          setStatus('status', '¡Turno confirmado! ' + data.slot.dayLabel + ', ' + data.slot.start + '-' + data.slot.end + 'h.', false);
           document.getElementById('group-input').value = '';
           document.getElementById('email-input').value = '';
           loadState();
         } else {
-          setStatus(data.message || 'No se ha podido reservar.', true);
+          setStatus('status', data.message || 'No se ha podido reservar.', true);
         }
       })
       .catch(function () {
         btn.disabled = false;
-        setStatus('No se ha podido conectar. Inténtalo de nuevo.', true);
+        setStatus('status', 'No se ha podido conectar. Inténtalo de nuevo.', true);
       });
   }
 
-  renderForm();
+  function onSubmitCancel(e) {
+    e.preventDefault();
+    var group = document.getElementById('cancel-group-input').value.trim();
+    var email = document.getElementById('cancel-email-input').value.trim();
+    var btn = e.target.querySelector('button');
+
+    if (!group || !email) return;
+
+    btn.disabled = true;
+    setStatus('cancel-status', 'Cancelando…', false);
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'cancel', group: group, email: email })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (data.ok) {
+          var when = data.slot ? (data.slot.dayLabel + ', ' + data.slot.start + '-' + data.slot.end + 'h') : '';
+          setStatus('cancel-status', 'Turno cancelado' + (when ? (': ' + when) : '') + '. Los turnos siguientes de ese día se han adelantado.', false);
+          document.getElementById('cancel-group-input').value = '';
+          document.getElementById('cancel-email-input').value = '';
+          loadState();
+        } else {
+          setStatus('cancel-status', data.message || 'No se ha podido cancelar.', true);
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        setStatus('cancel-status', 'No se ha podido conectar. Inténtalo de nuevo.', true);
+      });
+  }
+
+  document.getElementById('request-form').addEventListener('submit', onSubmitBook);
+  document.getElementById('cancel-form').addEventListener('submit', onSubmitCancel);
   loadState();
 </script>
 </body>
