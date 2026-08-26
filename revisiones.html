@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisión de exámenes</title>
+<style>
+  body{margin:0;background:#f5f4f2;color:#2a2a28;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:640px;margin:0 auto;padding:32px 20px 64px;}
+  h1{font-size:1.5rem;margin:0 0 4px;}
+  .sub{color:#6b6a67;margin:0 0 16px;font-size:0.95rem;line-height:1.5;}
+  .notice{background:#f1e6d8;color:#7a5a2e;border-radius:8px;padding:10px 14px;font-size:0.88rem;margin-bottom:24px;line-height:1.4;}
+  h2{font-size:1.05rem;margin:28px 0 8px;color:#3d3d3a;}
+  .card{background:#fff;border:1px solid #e3e1dc;border-radius:10px;padding:16px;margin-bottom:8px;}
+  .request-form{display:flex;gap:12px;flex-wrap:wrap;}
+  .field{flex:1;min-width:220px;}
+  .field.full{flex-basis:100%;}
+  .request-form label{display:block;font-size:0.85rem;color:#57564f;margin-bottom:4px;}
+  .request-form input{width:100%;padding:9px 10px;border:1px solid #ccc9c2;border-radius:6px;font-size:1rem;box-sizing:border-box;font-family:inherit;background:#fff;}
+  .request-form button{padding:10px 16px;border:none;border-radius:6px;background:#b5533c;color:#fff;font-size:0.95rem;cursor:pointer;}
+  .request-form button.secondary{background:#8a8880;}
+  .request-form button:disabled{opacity:0.6;cursor:default;}
+  .actions{flex-basis:100%;display:flex;justify-content:flex-end;margin-top:4px;}
+  details{margin-bottom:24px;}
+  summary{cursor:pointer;font-size:0.88rem;color:#6b6a67;padding:4px 0;}
+  .status{min-height:20px;font-size:0.9rem;margin:6px 2px 18px;color:#3d7a4f;}
+  .status.error{color:#b5453c;}
+  table.slots{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e1dc;border-radius:10px;overflow:hidden;}
+  table.slots td{padding:8px 12px;border-bottom:1px solid #efeee9;font-size:0.92rem;}
+  table.slots tr:last-child td{border-bottom:none;}
+  td.time{width:150px;color:#57564f;font-variant-numeric:tabular-nums;}
+  td.codigo{font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0.03em;}
+  .empty-day{color:#9b998f;font-size:0.9rem;padding:10px 2px;}
+  .foot{color:#8a8880;font-size:0.85rem;margin-top:18px;}
+  @media (prefers-color-scheme: dark){
+    body{background:#1c1b19;color:#eae8e3;}
+    .card,table.slots{background:#26241f;border-color:#3a3833;}
+    .request-form input{background:#1c1b19;border-color:#48453e;color:#eae8e3;}
+    .sub,h2,summary,.empty-day{color:#b8b6ad;}
+    td.time{color:#b8b6ad;}
+    .foot{color:#8a8880;}
+    .request-form button.secondary{background:#4a4841;}
+    .notice{background:#3a3020;color:#e0be8c;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Revisión de exámenes</h1>
+  <p class="sub" id="intro">Cargando información de la convocatoria…</p>
+  <p class="notice" id="notice"></p>
+
+  <div class="card">
+    <form id="request-form" class="request-form">
+      <div class="field">
+        <label for="nombre-input">Nombre y apellidos</label>
+        <input id="nombre-input" type="text" required maxlength="100" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="email-input">Correo electrónico</label>
+        <input id="email-input" type="email" required autocomplete="off">
+        <div id="email-hint" style="font-size:0.8rem;color:#8a8880;margin-top:3px;"></div>
+      </div>
+      <div class="field">
+        <label for="asignatura-input">Asignatura</label>
+        <input id="asignatura-input" type="text" required maxlength="100" autocomplete="off" placeholder="Escriba el nombre de la asignatura">
+      </div>
+      <div class="field full">
+        <label for="pregunta-input">¿Qué pregunta/ejercicio desea revisar? (opcional)</label>
+        <input id="pregunta-input" type="text" maxlength="300" autocomplete="off">
+      </div>
+      <div class="actions">
+        <button type="submit">Pedir turno</button>
+      </div>
+    </form>
+    <p id="form-hint" class="status" aria-live="polite" style="margin:8px 2px 0;"></p>
+  </div>
+  <div id="status" class="status" aria-live="polite"></div>
+
+  <details>
+    <summary>¿Necesitas cancelar tu turno?</summary>
+    <div class="card" style="margin-top:8px;">
+      <form id="cancel-form" class="request-form">
+        <div class="field">
+          <label for="cancel-email-input">Correo electrónico usado al reservar</label>
+          <input id="cancel-email-input" type="email" required autocomplete="off">
+        </div>
+        <div class="actions">
+          <button type="submit" class="secondary">Cancelar turno</button>
+        </div>
+      </form>
+    </div>
+  </details>
+  <div id="cancel-status" class="status" aria-live="polite"></div>
+
+  <h2>Turnos ya asignados</h2>
+  <p class="sub" style="margin-top:-6px;">Busca tu código de reserva en la lista para ver tu horario (puede haberse adelantado si ha habido cancelaciones).</p>
+  <div id="slotsArea">Cargando turnos…</div>
+</div>
+
+<script>
+  // URL de tu Apps Script (Implementar > Nueva implementación > Aplicación web)
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrkJbWRut11Fad8QeeXrKCObDVB4d-tNNcPyJGlYXdYXS_D3PnEFEDLbk_PTFkAq88/exec';
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function setStatus(elId, text, isError) {
+    var el = document.getElementById(elId);
+    el.textContent = text || '';
+    el.className = 'status' + (isError ? ' error' : '');
+  }
+
+  var dominioActual = ''; // se rellena al cargar el estado, se usa al validar el formulario
+
+  function renderState(data) {
+    dominioActual = data.dominioPermitido || '';
+
+    document.getElementById('intro').textContent =
+      'Las revisiones se celebrarán el ' + data.fechaLabel + ' en ' + data.lugar + ', a partir de las ' + data.horaInicio + 'h. ' +
+      'Turnos de ' + data.duracionMin + ' minutos, uno por alumno/a. Por favor, si desea solicitar revisión de su nota, rellene los siguientes campos.';
+
+    document.getElementById('notice').textContent =
+      'El horario de cada turno es orientativo: si hay cancelaciones, los turnos se adelantan automáticamente para no ' +
+      'dejar huecos. Cerca de la fecha de la revisión el plazo se cerrará y los turnos asignados quedarán definitivos, ' +
+      'publicados en esta misma web.' +
+      (dominioActual ? ' El correo electrónico debe terminar en ' + dominioActual + '.' : '');
+
+    var emailInput = document.getElementById('email-input');
+    var emailHint = document.getElementById('email-hint');
+    if (dominioActual) {
+      emailInput.placeholder = 'tu' + dominioActual;
+      emailHint.textContent = 'Debe terminar en ' + dominioActual;
+    } else {
+      emailInput.placeholder = '';
+      emailHint.textContent = '';
+    }
+
+    // Tabla de turnos ya ocupados (nunca se publican los libres, ni nombres
+    // ni emails: solo la hora y el código de reserva de cada alumno/a).
+    var html = '';
+    if (data.ocupados.length === 0) {
+      html = '<p class="empty-day">Todavía no hay turnos reservados.</p>';
+    } else {
+      html += '<table class="slots"><tbody>';
+      data.ocupados.forEach(function (t) {
+        html += '<tr>';
+        html += '<td class="time">' + esc(t.start) + '-' + esc(t.end) + 'h</td>';
+        html += '<td class="codigo">' + esc(t.codigo) + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+    }
+    document.getElementById('slotsArea').innerHTML = html;
+
+    // Habilita/deshabilita el formulario según quede sitio y plazo abierto.
+    // Este aviso va en su propio elemento (no en #status) para no tapar el
+    // mensaje de confirmación justo después de pedir o cancelar un turno.
+    var form = document.getElementById('request-form');
+    var submitBtn = form.querySelector('button[type=submit]');
+    if (data.plazoCerrado) {
+      submitBtn.disabled = true;
+      setStatus('form-hint', 'El plazo de reserva ha finalizado. Los turnos ya son definitivos.', false);
+    } else if (data.total >= data.capacidad) {
+      submitBtn.disabled = true;
+      setStatus('form-hint', 'No quedan turnos disponibles.', true);
+    } else {
+      submitBtn.disabled = false;
+      setStatus('form-hint', '', false);
+    }
+  }
+
+  function loadState() {
+    // cache: 'no-store' + un parámetro único evita que el navegador (o
+    // algún proxy) devuelva una respuesta antigua justo después de
+    // reservar o cancelar.
+    fetch(SCRIPT_URL + '?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.ok) { setStatus('status', 'No se ha podido cargar la lista de turnos.', true); return; }
+        renderState(data);
+      })
+      .catch(function () {
+        setStatus('status', 'No se ha podido cargar la lista de turnos.', true);
+      });
+  }
+
+  function onSubmitBook(e) {
+    e.preventDefault();
+    var nombre = document.getElementById('nombre-input').value.trim();
+    var email = document.getElementById('email-input').value.trim();
+    var asignatura = document.getElementById('asignatura-input').value.trim();
+    var pregunta = document.getElementById('pregunta-input').value.trim();
+    var btn = e.target.querySelector('button');
+
+    if (!nombre || !email || !asignatura) return;
+
+    if (dominioActual && !email.toLowerCase().endsWith(dominioActual.toLowerCase())) {
+      setStatus('status', 'El correo electrónico debe terminar en ' + dominioActual + '.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    setStatus('status', 'Guardando… puede tardar unos segundos.', false);
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita el preflight CORS
+      body: JSON.stringify({ action: 'book', nombre: nombre, email: email, asignatura: asignatura, pregunta: pregunta })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (data.ok) {
+          setStatus('status', '¡Turno pedido! Tu código de reserva es ' + data.slot.codigo + ' — GUÁRDALO: lo necesitarás para reconocer tu turno en la lista de abajo. Hora orientativa: ' + data.slot.start + '-' + data.slot.end + 'h del ' + data.slot.fechaLabel + '.', false);
+          document.getElementById('nombre-input').value = '';
+          document.getElementById('email-input').value = '';
+          document.getElementById('asignatura-input').value = '';
+          document.getElementById('pregunta-input').value = '';
+          loadState();
+        } else {
+          setStatus('status', data.message || 'No se ha podido reservar.', true);
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        // No sabemos si llegó a guardarse antes de perderse la respuesta.
+        // Si vuelve a intentarlo con el mismo email, el sistema le dirá su
+        // código si ya se había guardado, en vez de dejarle sin él.
+        setStatus('status', 'No se ha podido confirmar la respuesta (puede que sí se haya guardado). Vuelve a pulsar "Pedir turno": si ya tenías turno, te devolverá tu código.', true);
+      });
+  }
+
+  function onSubmitCancel(e) {
+    e.preventDefault();
+    var email = document.getElementById('cancel-email-input').value.trim();
+    var btn = e.target.querySelector('button');
+
+    if (!email) return;
+
+    btn.disabled = true;
+    setStatus('cancel-status', 'Cancelando…', false);
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'cancel', email: email })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (data.ok) {
+          var when = data.slot ? (data.slot.fechaLabel + ', ' + data.slot.start + '-' + data.slot.end + 'h') : '';
+          setStatus('cancel-status', 'Turno cancelado' + (when ? (': ' + when) : '') + '. Los turnos siguientes se han adelantado.', false);
+          document.getElementById('cancel-email-input').value = '';
+          loadState();
+        } else {
+          setStatus('cancel-status', data.message || 'No se ha podido cancelar.', true);
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        setStatus('cancel-status', 'No se ha podido conectar. Inténtalo de nuevo.', true);
+      });
+  }
+
+  document.getElementById('request-form').addEventListener('submit', onSubmitBook);
+  document.getElementById('cancel-form').addEventListener('submit', onSubmitCancel);
+  loadState();
+</script>
+</body>
+</html>
