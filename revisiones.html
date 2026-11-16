@@ -170,8 +170,8 @@
     document.getElementById('notice').textContent =
       'Turnos de ' + state.duracionMin + ' minutos, uno por alumno/a. ' +
       'El horario de cada turno es orientativo: si hay cancelaciones, los turnos se adelantan automáticamente para no ' +
-      'dejar huecos. Cerca de la fecha de la revisión el plazo se cerrará y los turnos asignados quedarán definitivos, ' +
-      'publicados en esta misma web.' +
+      'dejar huecos. El plazo para pedir o cancelar turno se cierra a las 14:00h del día anterior a la revisión; ' +
+      'a partir de ese momento los turnos asignados quedan definitivos, publicados en esta misma web.' +
       (dominioActual ? ' El correo electrónico debe terminar en ' + dominioActual + '.' : '');
 
     var emailInput = document.getElementById('email-input');
