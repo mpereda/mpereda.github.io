@@ -9,14 +9,16 @@
   .wrap{max-width:640px;margin:0 auto;padding:32px 20px 64px;}
   h1{font-size:1.5rem;margin:0 0 4px;}
   .sub{color:#6b6a67;margin:0 0 16px;font-size:0.95rem;line-height:1.5;}
+  .sessions{margin:-8px 0 16px;padding-left:20px;color:#6b6a67;font-size:0.95rem;line-height:1.6;}
   .notice{background:#f1e6d8;color:#7a5a2e;border-radius:8px;padding:10px 14px;font-size:0.88rem;margin-bottom:24px;line-height:1.4;}
   h2{font-size:1.05rem;margin:28px 0 8px;color:#3d3d3a;}
+  h3{font-size:0.95rem;margin:18px 0 6px;color:#3d3d3a;}
   .card{background:#fff;border:1px solid #e3e1dc;border-radius:10px;padding:16px;margin-bottom:8px;}
   .request-form{display:flex;gap:12px;flex-wrap:wrap;}
   .field{flex:1;min-width:220px;}
   .field.full{flex-basis:100%;}
   .request-form label{display:block;font-size:0.85rem;color:#57564f;margin-bottom:4px;}
-  .request-form input{width:100%;padding:9px 10px;border:1px solid #ccc9c2;border-radius:6px;font-size:1rem;box-sizing:border-box;font-family:inherit;background:#fff;}
+  .request-form input,.request-form select{width:100%;padding:9px 10px;border:1px solid #ccc9c2;border-radius:6px;font-size:1rem;box-sizing:border-box;font-family:inherit;background:#fff;color:inherit;}
   .request-form button{padding:10px 16px;border:none;border-radius:6px;background:#b5533c;color:#fff;font-size:0.95rem;cursor:pointer;}
   .request-form button.secondary{background:#8a8880;}
   .request-form button:disabled{opacity:0.6;cursor:default;}
@@ -35,8 +37,8 @@
   @media (prefers-color-scheme: dark){
     body{background:#1c1b19;color:#eae8e3;}
     .card,table.slots{background:#26241f;border-color:#3a3833;}
-    .request-form input{background:#1c1b19;border-color:#48453e;color:#eae8e3;}
-    .sub,h2,summary,.empty-day{color:#b8b6ad;}
+    .request-form input,.request-form select{background:#1c1b19;border-color:#48453e;color:#eae8e3;}
+    .sub,.sessions,h2,h3,summary,.empty-day{color:#b8b6ad;}
     td.time{color:#b8b6ad;}
     .foot{color:#8a8880;}
     .request-form button.secondary{background:#4a4841;}
@@ -47,7 +49,8 @@
 <body>
 <div class="wrap">
   <h1>Revisión de exámenes</h1>
-  <p class="sub" id="intro">Cargando información de la convocatoria…</p>
+  <p class="sub" id="intro">Revisa la fecha y hora límite de reserva en Moodle. Las revisiones se celebrarán en los despachos de la UD Organización de la producción (aulario sur, planta 3, frente a aula 37):</p>
+  <ul class="sessions" id="sessions-list"><li>Cargando fechas…</li></ul>
   <p class="notice" id="notice"></p>
 
   <div class="card">
@@ -63,7 +66,9 @@
       </div>
       <div class="field">
         <label for="asignatura-input">Asignatura</label>
-        <input id="asignatura-input" type="text" required maxlength="100" autocomplete="off" placeholder="Escriba el nombre de la asignatura">
+        <select id="asignatura-input" required>
+          <option value="" selected disabled>Elija la asignatura</option>
+        </select>
       </div>
       <div class="field full">
         <label for="pregunta-input">¿Qué pregunta/ejercicio desea revisar? (opcional)</label>
@@ -85,6 +90,12 @@
           <label for="cancel-email-input">Correo electrónico usado al reservar</label>
           <input id="cancel-email-input" type="email" required autocomplete="off">
         </div>
+        <div class="field">
+          <label for="cancel-asignatura-input">Asignatura del turno</label>
+          <select id="cancel-asignatura-input" required>
+            <option value="" selected disabled>Elija la asignatura</option>
+          </select>
+        </div>
         <div class="actions">
           <button type="submit" class="secondary">Cancelar turno</button>
         </div>
@@ -98,9 +109,15 @@
   <div id="slotsArea">Cargando turnos…</div>
 </div>
 
+
 <script>
-  // URL de tu Apps Script (Implementar > Nueva implementación > Aplicación web)
+  // URL de tu Apps Script (Implementar > Gestionar implementaciones).
+  // Un solo script gestiona todas las sesiones (fechas) de revisión: las
+  // fechas, horas y asignaturas se configuran allí, en la lista SESIONES.
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrkJbWRut11Fad8QeeXrKCObDVB4d-tNNcPyJGlYXdYXS_D3PnEFEDLbk_PTFkAq88/exec';
+
+  var state = null;          // última respuesta del Apps Script
+  var dominioActual = '';    // se usa al validar el formulario
 
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -112,16 +129,46 @@
     el.className = 'status' + (isError ? ' error' : '');
   }
 
-  var dominioActual = ''; // se rellena al cargar el estado, se usa al validar el formulario
+  function sesiones() { return (state && state.sesiones) || []; }
 
-  function renderState(data) {
-    dominioActual = data.dominioPermitido || '';
+  function sesionDeAsignatura(asig) {
+    var ss = sesiones();
+    for (var i = 0; i < ss.length; i++) {
+      if (ss[i].asignaturas.indexOf(asig) !== -1) return ss[i];
+    }
+    return null;
+  }
 
-    document.getElementById('intro').textContent =
-      'Las revisiones se celebrarán el ' + data.fechaLabel + ' en ' + data.lugar + ', a partir de las ' + data.horaInicio + 'h. ' +
-      'Turnos de ' + data.duracionMin + ' minutos, uno por alumno/a. Por favor, si desea solicitar revisión de su nota, rellene los siguientes campos.';
+  function titulo(s) { return s.asignaturas.join(' y '); }
+
+  // Rellena un desplegable con las asignaturas, conservando la elegida.
+  function fillSelect(id) {
+    var sel = document.getElementById(id);
+    var current = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    sesiones().forEach(function (s) {
+      s.asignaturas.forEach(function (a) {
+        var opt = document.createElement('option');
+        opt.value = a;
+        opt.textContent = a;
+        sel.appendChild(opt);
+      });
+    });
+    if (current && sesionDeAsignatura(current)) sel.value = current;
+  }
+
+  function renderState() {
+    dominioActual = state.dominioPermitido || '';
+
+    var lista = '';
+    sesiones().forEach(function (s) {
+      lista += '<li><strong>' + esc(titulo(s)) + ':</strong> ' + esc(s.fechaLabel) +
+               ', a partir de las ' + esc(s.horaInicio) + 'h.</li>';
+    });
+    document.getElementById('sessions-list').innerHTML = lista;
 
     document.getElementById('notice').textContent =
+      'Turnos de ' + state.duracionMin + ' minutos, uno por alumno/a. ' +
       'El horario de cada turno es orientativo: si hay cancelaciones, los turnos se adelantan automáticamente para no ' +
       'dejar huecos. Cerca de la fecha de la revisión el plazo se cerrará y los turnos asignados quedarán definitivos, ' +
       'publicados en esta misma web.' +
@@ -129,42 +176,52 @@
 
     var emailInput = document.getElementById('email-input');
     var emailHint = document.getElementById('email-hint');
-    if (dominioActual) {
-      emailInput.placeholder = 'tu' + dominioActual;
-      emailHint.textContent = 'Debe terminar en ' + dominioActual;
-    } else {
-      emailInput.placeholder = '';
-      emailHint.textContent = '';
-    }
+    emailInput.placeholder = dominioActual ? 'tu' + dominioActual : '';
+    emailHint.textContent = dominioActual ? 'Debe terminar en ' + dominioActual : '';
 
-    // Tabla de turnos ya ocupados (nunca se publican los libres, ni nombres
-    // ni emails: solo la hora y el código de reserva de cada alumno/a).
+    fillSelect('asignatura-input');
+    fillSelect('cancel-asignatura-input');
+
+    // Turnos ya ocupados de cada sesión (nunca se publican los libres, ni
+    // nombres ni emails: solo la hora y el código de reserva).
     var html = '';
-    if (data.ocupados.length === 0) {
-      html = '<p class="empty-day">Todavía no hay turnos reservados.</p>';
-    } else {
-      html += '<table class="slots"><tbody>';
-      data.ocupados.forEach(function (t) {
-        html += '<tr>';
-        html += '<td class="time">' + esc(t.start) + '-' + esc(t.end) + 'h</td>';
-        html += '<td class="codigo">' + esc(t.codigo) + '</td>';
-        html += '</tr>';
-      });
-      html += '</tbody></table>';
-    }
+    sesiones().forEach(function (s) {
+      html += '<h3>' + esc(titulo(s)) + ' — ' + esc(s.fechaLabel) + '</h3>';
+      if (s.ocupados.length === 0) {
+        html += '<p class="empty-day">Todavía no hay turnos reservados.</p>';
+      } else {
+        html += '<table class="slots"><tbody>';
+        s.ocupados.forEach(function (t) {
+          html += '<tr><td class="time">' + esc(t.start) + '-' + esc(t.end) + 'h</td>' +
+                  '<td class="codigo">' + esc(t.codigo) + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+    });
     document.getElementById('slotsArea').innerHTML = html;
 
-    // Habilita/deshabilita el formulario según quede sitio y plazo abierto.
-    // Este aviso va en su propio elemento (no en #status) para no tapar el
-    // mensaje de confirmación justo después de pedir o cancelar un turno.
-    var form = document.getElementById('request-form');
-    var submitBtn = form.querySelector('button[type=submit]');
-    if (data.plazoCerrado) {
+    updateFormState();
+  }
+
+  // Habilita/deshabilita "Pedir turno" según la sesión de la asignatura
+  // elegida. Va en su propio elemento (no en #status) para no tapar el
+  // mensaje de confirmación justo después de pedir o cancelar un turno.
+  function updateFormState() {
+    var submitBtn = document.querySelector('#request-form button[type=submit]');
+    var asig = document.getElementById('asignatura-input').value;
+    var s = sesionDeAsignatura(asig);
+
+    if (!state) {
       submitBtn.disabled = true;
-      setStatus('form-hint', 'El plazo de reserva ha finalizado. Los turnos ya son definitivos.', false);
-    } else if (data.total >= data.capacidad) {
+    } else if (!s) {
+      submitBtn.disabled = false;
+      setStatus('form-hint', '', false);
+    } else if (s.plazoCerrado) {
       submitBtn.disabled = true;
-      setStatus('form-hint', 'No quedan turnos disponibles.', true);
+      setStatus('form-hint', 'El plazo de reserva para ' + asig + ' ha finalizado. Los turnos ya son definitivos.', false);
+    } else if (s.total >= s.capacidad) {
+      submitBtn.disabled = true;
+      setStatus('form-hint', 'No quedan turnos disponibles para ' + asig + '.', true);
     } else {
       submitBtn.disabled = false;
       setStatus('form-hint', '', false);
@@ -178,8 +235,9 @@
     fetch(SCRIPT_URL + '?t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data.ok) { setStatus('status', 'No se ha podido cargar la lista de turnos.', true); return; }
-        renderState(data);
+        if (!data.ok || !data.sesiones) { setStatus('status', 'No se ha podido cargar la lista de turnos.', true); return; }
+        state = data;
+        renderState();
       })
       .catch(function () {
         setStatus('status', 'No se ha podido cargar la lista de turnos.', true);
@@ -190,7 +248,7 @@
     e.preventDefault();
     var nombre = document.getElementById('nombre-input').value.trim();
     var email = document.getElementById('email-input').value.trim();
-    var asignatura = document.getElementById('asignatura-input').value.trim();
+    var asignatura = document.getElementById('asignatura-input').value;
     var pregunta = document.getElementById('pregunta-input').value.trim();
     var btn = e.target.querySelector('button');
 
@@ -235,9 +293,10 @@
   function onSubmitCancel(e) {
     e.preventDefault();
     var email = document.getElementById('cancel-email-input').value.trim();
+    var asignatura = document.getElementById('cancel-asignatura-input').value;
     var btn = e.target.querySelector('button');
 
-    if (!email) return;
+    if (!email || !asignatura) return;
 
     btn.disabled = true;
     setStatus('cancel-status', 'Cancelando…', false);
@@ -245,7 +304,7 @@
     fetch(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'cancel', email: email })
+      body: JSON.stringify({ action: 'cancel', email: email, asignatura: asignatura })
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
@@ -254,6 +313,7 @@
           var when = data.slot ? (data.slot.fechaLabel + ', ' + data.slot.start + '-' + data.slot.end + 'h') : '';
           setStatus('cancel-status', 'Turno cancelado' + (when ? (': ' + when) : '') + '. Los turnos siguientes se han adelantado.', false);
           document.getElementById('cancel-email-input').value = '';
+          document.getElementById('cancel-asignatura-input').value = '';
           loadState();
         } else {
           setStatus('cancel-status', data.message || 'No se ha podido cancelar.', true);
@@ -265,8 +325,10 @@
       });
   }
 
+  document.getElementById('asignatura-input').addEventListener('change', updateFormState);
   document.getElementById('request-form').addEventListener('submit', onSubmitBook);
   document.getElementById('cancel-form').addEventListener('submit', onSubmitCancel);
+  updateFormState();
   loadState();
 </script>
 </body>
